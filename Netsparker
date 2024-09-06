@@ -1,0 +1,21 @@
+# Define the log directory path
+$LogDirectory = "C:\Program Files\Netsparker\Logs"  # Adjust to your specific path
+
+# Check if the log directory exists
+if (Test-Path $LogDirectory) {
+    # Get all log files in the directory
+    $logFiles = Get-ChildItem -Path $LogDirectory -Filter *.log
+    
+    # Read and export logs
+    foreach ($logFile in $logFiles) {
+        $logs = Get-Content -Path $logFile.FullName
+        
+        # Export to a file
+        $ExportPath = "C:\Logs\Netsparker_$($logFile.Name)"  # Change this path as needed
+        $logs | Out-File -FilePath $ExportPath
+        
+        Write-Output "Logs from $($logFile.FullName) have been exported to $ExportPath"
+    }
+} else {
+    Write-Output "Log directory not found: $LogDirectory"
+}
