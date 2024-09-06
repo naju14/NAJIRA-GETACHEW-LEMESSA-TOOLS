@@ -17,3 +17,17 @@ WHERE (TABLE_NAME LIKE '%log%'
    OR (COLUMN_NAME LIKE '%log%' 
     OR COLUMN_NAME LIKE '%activity%' 
     OR COLUMN_NAME LIKE '%event%');
+
+
+USE Netsparker;
+
+SELECT 
+    User,
+    Action,
+    Endpoint_Type,
+    Date
+FROM 
+    activity_logs
+ORDER BY 
+    Date DESC;
+
