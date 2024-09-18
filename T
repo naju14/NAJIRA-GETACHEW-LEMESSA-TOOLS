@@ -1,0 +1,12 @@
+-- Original Queries
+SELECT * 
+FROM SA.rock_stealth.openshares;
+
+SELECT DISTINCT (rock_dns_path) 
+FROM SA.rock_stealth.openshares;
+
+-- Find Duplicates in rock_dns_path
+SELECT rock_dns_path, COUNT(*) AS duplicate_count
+FROM SA.rock_stealth.openshares
+GROUP BY rock_dns_path
+HAVING COUNT(*) > 1;
