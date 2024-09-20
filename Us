@@ -1,0 +1,37 @@
+NERGE INTO S r S O T
+USING
+Rew182
+NEw T9
+new 20 X
+new23 X
+new.21
+SELECT
+gi,t I dt_dpt_ses
+vEcodd,resgntE_sgnt
+iriosirge
+FROM s_r_sost
+S
+ON T.r gi=S.rgi
+WHEN MATCHED THEN UPDATE
+SET
+T.r_1d 8 S.E_1d,T.r_dp 0 S.r_dp
+S.E_s_e_s,T.r_c O dd = s.r_co_dd
+,T.r_ S_OS
+,T.r_c_s_gn
+S.r_C s_gn,F.r_rsgn
+8.1_E_s_gn
+S.F_r,T.r_i_o_s_i
+s.r_i_os_i
+,T.rr
+iT.r_ge s s.r_g_e
+WHEN NOT MATCHED THEN INSERT
+r_g_i,r_l d,r_dp
+'E_Ses,E codd
+OE_C_S_O_NIE_E_S_gh
+,r_rir_i_o_s_iir_ge
+VALUES
+S.r_gi, S.rld, S.r_dp
+,S.rses, S.rc o dd
+S.rcsgn s.rrsgn
+S.r r, S.r i osi s.r ge
+DELETE FROM s r_s_o_S_t
