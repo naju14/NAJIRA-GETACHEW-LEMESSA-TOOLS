@@ -1,1 +1,4 @@
-
+API Calls: The script calls the users, roles, and auditlogs endpoints.
+Data Combination: It combines the data from the logs, user details, and roles.
+Save as CSV: The combined data is saved into a CSV file.
+Scheduler: It registers a job to run every hour.
