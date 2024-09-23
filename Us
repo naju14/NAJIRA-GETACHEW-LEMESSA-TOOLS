@@ -1,1 +1,6 @@
+Option 1: Implement an SQL query that retrieves user audit log data from the primary database table and exports the results to a CSV file. This file can then be accessed and processed by other teams or applications for further analysis and reporting.
+
+Option 2: Utilize the Invicity Enterprise API through PowerShell to create a scheduled job that periodically fetches user logging details and associated roles. The retrieved data will be saved in a CSV file at specified intervals for subsequent use.
+
+In addition to the previously mentioned user and UI logging options, capturing Windows activity logs will require a separate method for data retrieval. This can be accomplished by creating a job or script that collects Windows Event Logs or IIS logs from the server side.
 
