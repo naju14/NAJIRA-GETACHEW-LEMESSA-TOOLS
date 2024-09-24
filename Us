@@ -1,31 +1,22 @@
--- User Audit Logs
+USE netsparker; -- Ensure you're in the netsparker database
+
 SELECT 
-    C.name AS UserName,
-    C.email AS UserEmail,
-    (SELECT TOP 1 D.name 
-     FROM Roles D
-     JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
-     WHERE C.Id = E.UserId) AS Role,
-    B.Name AS ActionName,
-    B.value AS ActionValue,
-    B.CreatedAt AS ActionCreatedAt
+    C.name AS UserName,            -- User's name
+    C.email AS UserEmail,          -- User's email
+    (
+        SELECT TOP 1 D.name        -- Get the role of the user
+        FROM Roles D
+        JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
+        WHERE C.Id = E.UserId
+    ) AS Role,
+    B.Name AS ActionName,          -- Name of the action performed
+    B.value AS ActionValue,        -- Value associated with the action
+    B.CreatedAt AS ActionCreatedAt -- Timestamp when the action was created
 FROM 
     Useraction A
 JOIN 
-    Useractionparameters B ON A.Id = B.userAction_Id
+    Useractionparameters B ON A.Id = B.userAction_Id -- Join with action parameters
 JOIN 
-    users C ON A.userId = C.Id
-
-UNION ALL
-
--- General Audit Logs (assuming there is a separate AuditLogs table)
-SELECT
-    NULL AS UserName,        -- No user name in general audit logs
-    NULL AS UserEmail,       -- No user email in general audit logs
-    NULL AS Role,            -- No role in general audit logs
-    AL.ActionName AS ActionName,
-    AL.ActionDetails AS ActionValue,
-    AL.CreatedAt AS ActionCreatedAt
-FROM 
-    AuditLogs AL;            -- Replace with the actual table and column names
-
+    users C ON A.userId = C.Id -- Join with users to get user info
+ORDER BY 
+    B.CreatedAt DESC; -- Order by the most recent action logs
