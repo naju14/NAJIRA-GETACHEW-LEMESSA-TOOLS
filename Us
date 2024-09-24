@@ -19,3 +19,23 @@ FROM
     dbo.AuditLogs A
 JOIN 
     users U ON A.UserId = U.Id;  -- Join AuditLogs with users table
+
+
+
+SELECT 
+    C.name AS UserName,
+    C.email AS UserEmail,
+    D.name AS Role,                -- Role from Roles table
+    B.Name AS ActionName,          -- Action name from Useractionparameters
+    B.value AS ActionValue,        -- Action value from Useractionparameters
+    B.CreatedAt AS ActionCreatedAt  -- Created timestamp from Useractionparameters
+FROM 
+    Useractions A
+JOIN 
+    Useractionparameters B ON A.Id = B.userAction_Id
+JOIN 
+    users C ON A.userId = C.Id
+LEFT JOIN 
+    UserRolewebsiteGroupMappings E ON C.Id = E.UserId  -- Join for user roles
+LEFT JOIN 
+    Roles D ON E.RoleID = D.Id;  -- Join to get role names
