@@ -2,16 +2,16 @@ USE netsparker;  -- Ensure you're in the correct database
 GO
 
 SELECT 
-    U.name AS UserName,         -- User's name
-    A.UserId,                   -- User ID from AuditLogs
-    A.RequestData,              -- Request data from AuditLogs
-    A.Message,                  -- Message from AuditLogs
-    A.CreatedAt,                -- Created timestamp from AuditLogs
-    A.DeletedOn,                -- Deleted timestamp from AuditLogs
-    A.DeletedById,              -- ID of the user who deleted the log (if applicable)
-    A.Timestamp,                -- Timestamp of the log entry from AuditLogs
-    A.EndpointType,             -- Type of endpoint from AuditLogs
-    (SELECT TOP 1 R.name        -- Role name from Roles table
+    U.name AS UserName,                      -- User's name
+    CAST(A.UserId AS UNIQUEIDENTIFIER) AS UserId,  -- Ensure UserId is a UNIQUEIDENTIFIER
+    A.RequestData,                           -- Request data from AuditLogs
+    A.Message,                               -- Message from AuditLogs
+    A.CreatedAt,                             -- Created timestamp from AuditLogs
+    A.DeletedOn,                             -- Deleted timestamp from AuditLogs
+    A.DeletedById,                           -- ID of the user who deleted the log (if applicable)
+    A.Timestamp,                             -- Timestamp of the log entry from AuditLogs
+    A.EndpointType,                          -- Type of endpoint from AuditLogs
+    (SELECT TOP 1 R.name                     -- Role name from Roles table
      FROM UserRolewebsiteGroupMappings UR
      JOIN Roles R ON UR.RoleID = R.Id
      WHERE U.Id = UR.UserId) AS Role
@@ -25,14 +25,14 @@ UNION ALL
 SELECT 
     C.name AS UserName,
     C.email AS UserEmail,
-    NULL AS RequestData,         -- Placeholder for RequestData, not available in this query
-    NULL AS Message,             -- Placeholder for Message, not available in this query
-    B.CreatedAt AS CreatedAt,    -- Created timestamp from Useractionparameters
-    NULL AS DeletedOn,           -- Placeholder for DeletedOn, not available in this query
-    NULL AS DeletedById,         -- Placeholder for DeletedById, not available in this query
-    NULL AS Timestamp,           -- Placeholder for Timestamp, not available in this query
-    NULL AS EndpointType,        -- Placeholder for EndpointType, not available in this query
-    D.name AS Role                -- Role from Roles table
+    NULL AS RequestData,                    -- Placeholder for RequestData, not available in this query
+    NULL AS Message,                        -- Placeholder for Message, not available in this query
+    B.CreatedAt AS CreatedAt,               -- Created timestamp from Useractionparameters
+    NULL AS DeletedOn,                      -- Placeholder for DeletedOn, not available in this query
+    NULL AS DeletedById,                    -- Placeholder for DeletedById, not available in this query
+    NULL AS Timestamp,                      -- Placeholder for Timestamp, not available in this query
+    NULL AS EndpointType,                   -- Placeholder for EndpointType, not available in this query
+    D.name AS Role                          -- Role from Roles table
 FROM 
     Useractions A
 JOIN 
@@ -42,5 +42,4 @@ JOIN
 LEFT JOIN 
     UserRolewebsiteGroupMappings E ON C.Id = E.UserId  -- Join for user roles
 LEFT JOIN 
-    Roles D ON E.RoleID = D.Id;  -- Join to get role names
-
+    Roles D ON E.RoleID = D.Id;
