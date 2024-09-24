@@ -1,22 +1,35 @@
-USE netsparker; -- Ensure you're in the netsparker database
+USE netsparker;  -- Ensure you're in the correct database
+GO
 
+-- First, query user logs from Useractions, Useractionparameters, and users
 SELECT 
-    C.name AS UserName,            -- User's name
-    C.email AS UserEmail,          -- User's email
-    (
-        SELECT TOP 1 D.name        -- Get the role of the user
-        FROM Roles D
-        JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
-        WHERE C.Id = E.UserId
-    ) AS Role,
-    B.Name AS ActionName,          -- Name of the action performed
-    B.value AS ActionValue,        -- Value associated with the action
-    B.CreatedAt AS ActionCreatedAt -- Timestamp when the action was created
+    C.name AS UserName,
+    C.email AS UserEmail,
+    (SELECT TOP 1 D.name 
+     FROM Roles D
+     JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
+     WHERE C.Id = E.UserId) AS Role,
+    B.Name AS ActionName,
+    B.value AS ActionValue,
+    B.CreatedAt AS ActionCreatedAt
 FROM 
-    Useraction A
+    Useractions A
 JOIN 
-    Useractionparameters B ON A.Id = B.userAction_Id -- Join with action parameters
+    Useractionparameters B ON A.Id = B.userAction_Id
 JOIN 
-    users C ON A.userId = C.Id -- Join with users to get user info
-ORDER BY 
-    B.CreatedAt DESC; -- Order by the most recent action logs
+    users C ON A.userId = C.Id
+
+UNION ALL
+
+-- Second, query logs from dbo.AuditLogs
+SELECT 
+    C.name AS UserName,
+    C.email AS UserEmail,
+    NULL AS Role,   -- Assuming Role is not relevant in dbo.AuditLogs
+    AL.ActionName AS ActionName,
+    AL.ActionDetails AS ActionValue,
+    AL.CreatedAt AS ActionCreatedAt
+FROM 
+    dbo.AuditLogs AL
+JOIN 
+    users C ON AL.UserId = C.Id;   -- Assuming AuditLogs table has a UserId to link with the users table
