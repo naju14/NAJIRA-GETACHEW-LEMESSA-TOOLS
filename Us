@@ -12,9 +12,9 @@ SELECT
     B.Name AS ActionName,
     B.value AS ActionValue,
     B.CreatedAt AS ActionCreatedAt,
-    NULL AS RequestData,       -- Placeholder for AuditLogs RequestData
-    NULL AS Message,           -- Placeholder for AuditLogs Message
-    NULL AS DeletedOn          -- Placeholder for AuditLogs DeletedOn
+    NULL AS RequestData,   -- Placeholder for RequestData, as it's not applicable here
+    NULL AS Message,       -- Placeholder for Message, as it's not applicable here
+    NULL AS DeletedOn      -- Placeholder for DeletedOn, as it's not applicable here
 FROM 
     Useractions A
 JOIN 
@@ -24,18 +24,21 @@ JOIN
 
 UNION ALL
 
--- Query to get logs from dbo.AuditLogs
+-- Query to get logs from AuditLogs
 SELECT 
-    users.name AS UserName,
-    users.email AS UserEmail,
-    NULL AS Role,                 -- Assuming role information is not in AuditLogs
-    NULL AS ActionName,            -- Placeholder for ActionName (not in AuditLogs)
-    dbo.AuditLogs.RequestData AS ActionValue, -- Using RequestData as ActionValue for consistency
-    dbo.AuditLogs.CreatedAt AS ActionCreatedAt,
-    dbo.AuditLogs.RequestData,     -- RequestData from AuditLogs
-    dbo.AuditLogs.Message,         -- Message from AuditLogs
-    dbo.AuditLogs.DeletedOn        -- DeletedOn from AuditLogs
+    C.name AS UserName,
+    C.email AS UserEmail,
+    (SELECT TOP 1 D.name 
+     FROM Roles D
+     JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
+     WHERE C.Id = E.UserId) AS Role,
+    NULL AS ActionName,    -- Placeholder for ActionName, as it's not applicable here
+    NULL AS ActionValue,    -- Placeholder for ActionValue, as it's not applicable here
+    CreatedAt AS ActionCreatedAt,
+    RequestData,
+    Message,
+    DeletedOn
 FROM 
     dbo.AuditLogs
 JOIN 
-    users ON dbo.AuditLogs.UserId = users.Id;   -- Assuming AuditLogs has UserId to link with users table
+    users C ON dbo.AuditLogs.UserId = C.Id;  -- Join AuditLogs with users
