@@ -1,7 +1,7 @@
 USE netsparker;  -- Ensure you're in the correct database
 GO
 
--- First, query user logs from Useractions, Useractionparameters, and users
+-- Query to get user logs from Useractions, Useractionparameters, and users
 SELECT 
     C.name AS UserName,
     C.email AS UserEmail,
@@ -11,7 +11,10 @@ SELECT
      WHERE C.Id = E.UserId) AS Role,
     B.Name AS ActionName,
     B.value AS ActionValue,
-    B.CreatedAt AS ActionCreatedAt
+    B.CreatedAt AS ActionCreatedAt,
+    NULL AS RequestData,       -- Placeholder for AuditLogs RequestData
+    NULL AS Message,           -- Placeholder for AuditLogs Message
+    NULL AS DeletedOn          -- Placeholder for AuditLogs DeletedOn
 FROM 
     Useractions A
 JOIN 
@@ -21,15 +24,18 @@ JOIN
 
 UNION ALL
 
--- Second, query logs from dbo.AuditLogs
+-- Query to get logs from dbo.AuditLogs
 SELECT 
-    C.name AS UserName,
-    C.email AS UserEmail,
-    NULL AS Role,   -- Assuming Role is not relevant in dbo.AuditLogs
-    AL.ActionName AS ActionName,
-    AL.ActionDetails AS ActionValue,
-    AL.CreatedAt AS ActionCreatedAt
+    users.name AS UserName,
+    users.email AS UserEmail,
+    NULL AS Role,                 -- Assuming role information is not in AuditLogs
+    NULL AS ActionName,            -- Placeholder for ActionName (not in AuditLogs)
+    dbo.AuditLogs.RequestData AS ActionValue, -- Using RequestData as ActionValue for consistency
+    dbo.AuditLogs.CreatedAt AS ActionCreatedAt,
+    dbo.AuditLogs.RequestData,     -- RequestData from AuditLogs
+    dbo.AuditLogs.Message,         -- Message from AuditLogs
+    dbo.AuditLogs.DeletedOn        -- DeletedOn from AuditLogs
 FROM 
-    dbo.AuditLogs AL
+    dbo.AuditLogs
 JOIN 
-    users C ON AL.UserId = C.Id;   -- Assuming AuditLogs table has a UserId to link with the users table
+    users ON dbo.AuditLogs.UserId = users.Id;   -- Assuming AuditLogs has UserId to link with users table
