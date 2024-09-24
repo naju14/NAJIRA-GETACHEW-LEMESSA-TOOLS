@@ -1,1 +1,33 @@
+-- Ensure you are using the correct database
+USE netsparker;
+
+-- Define the query you want to export
+DECLARE @SQL NVARCHAR(MAX);
+SET @SQL = 'SELECT 
+    C.name AS UserName,
+    C.email AS UserEmail,
+    (SELECT TOP 1 D.name 
+     FROM Roles D
+     JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
+     WHERE C.Id = E.UserId) AS Role,
+    B.Name AS ActionName,
+    B.value AS ActionValue,
+    B.CreatedAt AS ActionCreatedAt
+FROM 
+    Useraction A
+JOIN 
+    Useractionparameters B ON A.Id = B.userAction_Id
+JOIN 
+    users C ON A.userId = C.Id';
+
+-- Define the file path for the CSV
+DECLARE @FilePath NVARCHAR(255);
+SET @FilePath = 'C:\Path\To\Your\Folder\UserAuditLogs.csv';
+
+-- Define the bcp command with the query
+DECLARE @BCPCommand NVARCHAR(1000);
+SET @BCPCommand = 'bcp "' + @SQL + '" queryout "' + @FilePath + '" -c -t, -T -S ' + @@SERVERNAME;
+
+-- Execute the bcp command using xp_cmdshell
+EXEC master..xp_cmdshell @BCPCommand;
 
