@@ -1,8 +1,1 @@
-# Path to the file or folder
-$path = "C:\path\to\your\file\abcd"
 
-# Enable inheritance
-icacls $path /inheritance:e
-
-# Confirm inheritance is enabled
-icacls $path
