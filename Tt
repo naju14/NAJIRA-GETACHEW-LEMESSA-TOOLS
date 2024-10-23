@@ -14,6 +14,8 @@ FROM Useractions A
 JOIN Useractionparameters B ON A.Id = B.userAction_Id
 JOIN users C ON A.userId = C.Id;
 
--- Export data to CSV using BCP
+-- Properly handle the quotes in the bcp command
 DECLARE @bcpCommand VARCHAR(1000);
-SET @bcpCommand = 'bcp "SELECT * FROM #TempResults" queryout "C:\Output\user_data.csv"
+SET @bcpCommand = 'bcp "SELECT * FROM #TempResults" queryout "C:\\Output\\user_data.csv" -c -t, -T -S ' + @@servername;
+
+EXEC xp_cmdshell @bcpCommand;
