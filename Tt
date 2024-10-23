@@ -1,10 +1,14 @@
 USE netsparker;
-SELECT C.name, C.email,
-       (SELECT TOP 1 D.name 
-        FROM Roles D
-        JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
-        WHERE C.Id = E.UserId) AS Role,
-       B.Name, B.value, B.CreatedAt
+SELECT 
+    C.name AS UserName,  -- Alias to make column names unique
+    C.email,
+    (SELECT TOP 1 D.name 
+     FROM Roles D
+     JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
+     WHERE C.Id = E.UserId) AS Role,
+    B.Name AS ActionParameterName,  -- Alias for the Name from Useractionparameters
+    B.value, 
+    B.CreatedAt
 INTO #TempResults
 FROM Useractions A
 JOIN Useractionparameters B ON A.Id = B.userAction_Id
@@ -12,6 +16,4 @@ JOIN users C ON A.userId = C.Id;
 
 -- Export data to CSV using BCP
 DECLARE @bcpCommand VARCHAR(1000);
-SET @bcpCommand = 'bcp "SELECT * FROM #TempResults" queryout "C:\Output\user_data.csv" -c -t, -T -S ' + @@servername;
-
-EXEC xp_cmdshell @bcpCommand;
+SET @bcpCommand = 'bcp "SELECT * FROM #TempResults" queryout "C:\Output\user_data.csv"
