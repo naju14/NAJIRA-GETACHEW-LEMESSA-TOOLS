@@ -1,45 +1,15 @@
-USE netsparker;  -- Ensure you're in the correct database
-GO
-
-SELECT 
-    U.name AS UserName,                      -- User's name
-    CAST(A.UserId AS UNIQUEIDENTIFIER) AS UserId,  -- Ensure UserId is a UNIQUEIDENTIFIER
-    A.RequestData,                           -- Request data from AuditLogs
-    A.Message,                               -- Message from AuditLogs
-    A.CreatedAt,                             -- Created timestamp from AuditLogs
-    A.DeletedOn,                             -- Deleted timestamp from AuditLogs
-    A.DeletedById,                           -- ID of the user who deleted the log (if applicable)
-    A.Timestamp,                             -- Timestamp of the log entry from AuditLogs
-    A.EndpointType,                          -- Type of endpoint from AuditLogs
-    (SELECT TOP 1 R.name                     -- Role name from Roles table
-     FROM UserRolewebsiteGroupMappings UR
-     JOIN Roles R ON UR.RoleID = R.Id
-     WHERE U.Id = UR.UserId) AS Role
-FROM 
-    dbo.AuditLogs A
-JOIN 
-    users U ON A.UserId = U.Id
-
-UNION ALL
-
-SELECT 
-    C.name AS UserName,
-    C.email AS UserEmail,
-    NULL AS RequestData,                    -- Placeholder for RequestData, not available in this query
-    NULL AS Message,                        -- Placeholder for Message, not available in this query
-    B.CreatedAt AS CreatedAt,               -- Created timestamp from Useractionparameters
-    NULL AS DeletedOn,                      -- Placeholder for DeletedOn, not available in this query
-    NULL AS DeletedById,                    -- Placeholder for DeletedById, not available in this query
-    NULL AS Timestamp,                      -- Placeholder for Timestamp, not available in this query
-    NULL AS EndpointType,                   -- Placeholder for EndpointType, not available in this query
-    D.name AS Role                          -- Role from Roles table
-FROM 
-    Useractions A
-JOIN 
-    Useractionparameters B ON A.Id = B.userAction_Id
-JOIN 
-    users C ON A.userId = C.Id
-LEFT JOIN 
-    UserRolewebsiteGroupMappings E ON C.Id = E.UserId  -- Join for user roles
-LEFT JOIN 
-    Roles D ON E.RoleID = D.Id;
+USE netsparker;
+SELECT C.name, C.email,
+       (SELECT D.name 
+        FROM Roles D
+        JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
+        WHERE C.Id = E.UserId 
+        LIMIT 1) AS Role,
+       B.Name, B.value, B.CreatedAt
+INTO OUTFILE '/var/lib/mysql-files/user_data.csv'
+FIELDS TERMINATED BY ',' 
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n'
+FROM Useractions A
+JOIN Useractionparameters B ON A.Id = B.userAction_Id
+JOIN users C ON A.userId = C.Id;
