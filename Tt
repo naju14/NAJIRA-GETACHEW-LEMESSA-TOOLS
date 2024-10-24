@@ -1,21 +1,59 @@
-USE netsparker;
-SELECT 
-    C.name AS UserName,  -- Alias to make column names unique
-    C.email,
-    (SELECT TOP 1 D.name 
-     FROM Roles D
-     JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
-     WHERE C.Id = E.UserId) AS Role,
-    B.Name AS ActionParameterName,  -- Alias for the Name from Useractionparameters
-    B.value, 
-    B.CreatedAt
-INTO #TempResults
+import pyodbc
+import pandas as pd
+
+# Assume NetsparkerDB is a class that handles ODBC connections
+class NetsparkerDB:
+    def __init__(self, connection_string):
+        self.connection_string = connection_string
+        self.connection = None
+
+    def connect(self):
+        self.connection = pyodbc.connect(self.connection_string)
+    
+    def close(self):
+        if self.connection:
+            self.connection.close()
+
+# Assume CxDB is a class for managing DB login credentials and connections
+class CxDB:
+    def __init__(self, server, database, username, password):
+        self.server = server
+        self.database = database
+        self.username = username
+        self.password = password
+
+    def get_connection_string(self):
+        # Construct ODBC connection string
+        return f'DRIVER={{SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.username};PWD={self.password}'
+
+# Usage:
+# Set up database login
+db_login = CxDB(server='your_server', database='netsparker', username='your_username', password='your_password')
+
+# Initialize ODBC connection class
+netsparker_db = NetsparkerDB(connection_string=db_login.get_connection_string())
+
+# Connect to the database
+netsparker_db.connect()
+
+# Define the query
+query = """
+SELECT C.name, C.email,
+       (SELECT TOP 1 D.name 
+        FROM Roles D
+        JOIN UserRolewebsiteGroupMappings E ON D.Id = E.RoleID 
+        WHERE C.Id = E.UserId) AS Role,
+       B.Name, B.value, B.CreatedAt
 FROM Useractions A
 JOIN Useractionparameters B ON A.Id = B.userAction_Id
 JOIN users C ON A.userId = C.Id;
+"""
 
--- Properly handle the quotes in the bcp command
-DECLARE @bcpCommand VARCHAR(1000);
-SET @bcpCommand = 'bcp "SELECT * FROM #TempResults" queryout "C:\\Output\\user_data.csv" -c -t, -T -S ' + @@servername;
+# Execute the query and fetch the result
+df = pd.read_sql(query, netsparker_db.connection)
 
-EXEC xp_cmdshell @bcpCommand;
+# Save the result to a CSV file
+df.to_csv('user_data.csv', index=False)
+
+# Close the database connection
+netsparker_db.close()
