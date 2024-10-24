@@ -1,1 +1,52 @@
+import csv
+from NetsparkerDB import NetsparkerDB
+from CxDB import CxDB
+
+# Function to execute the SQL query and export the results to a CSV file
+def export_user_actions_to_csv(env, output_file):
+    # Create a connection to the database
+    db = NetsparkerDB(env)  # Assuming NetsparkerDB handles the connection for the specified environment
+    
+    # Define the SQL query
+    sql = """
+    SELECT C.name, C.email,
+           (SELECT TOP 1 D.name 
+            FROM Roles D, UserRolewebsiteGroupMappings E 
+            WHERE D.Id = E.RoleID AND C.Id = E.UserId) AS 'Role',
+           B.Name, B.value, B.CreatedAt
+    FROM Useractions A, Useractionparameters B, users C
+    WHERE A.Id = B.userAction_Id AND A.userId = C.Id
+    """
+    
+    try:
+        # Execute the SQL query
+        cursor = db.execute(sql)
+        
+        # Fetch all rows from the executed query
+        rows = cursor.fetchall()
+        
+        # Write to a CSV file
+        with open(output_file, mode='w', newline='') as csvfile:
+            csv_writer = csv.writer(csvfile)
+            
+            # Write header (column names)
+            column_names = [column[0] for column in cursor.description]
+            csv_writer.writerow(column_names)
+            
+            # Write data rows
+            for row in rows:
+                csv_writer.writerow(row)
+        
+        print(f'Data exported successfully to {output_file}')
+        
+    except Exception as e:
+        print(f'An error occurred: {e}')
+    finally:
+        db.close()  # Make sure to close the database connection
+
+# Example usage to connect to UAT and export user actions to a CSV file
+if __name__ == "__main__":
+    uat_environment = 'uat'  # Specify the environment
+    output_file_path = 'user_actions_output.csv'  # Specify the output file
+    export_user_actions_to_csv(uat_environment, output_file_path)
 
