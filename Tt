@@ -58,3 +58,58 @@ df.to_csv('user_data.csv', index=False)
 
 # Close the database connection
 netsparker_db.close()
+
+
+
+
+
+
+import sys
+from CxDB import CxDB
+from NetsparkerDB import NetsparkerDB
+
+def main():
+    # Define environment and database
+    env = 'uat'  # Use 'uat' as specified in the NetsparkerDB class
+    netsparker_db = 'Netsparker'  # The database name for the NetsparkerDB class
+
+    # Initialize the connections
+    try:
+        # Connect to the Netsparker database
+        netsparker_connection = NetsparkerDB(env)
+        
+        # Connect to the CxDB (not explicitly needed based on provided SQL but shown for completeness)
+        cx_connection = CxDB(env)
+
+        # SQL query to execute
+        sql_query = """
+        USE netsparker;
+        SELECT C.name, C.email,
+            (SELECT TOP 1 D.name 
+             FROM Roles D, UserRolewebsiteGroupMappings E 
+             WHERE D.Id = E.RoleID AND C.Id = E.UserId) AS Role,
+            B.Name, B.value, B.CreatedAt
+        FROM Useractions A
+        JOIN Useractionparameters B ON A.Id = B.userAction_Id
+        JOIN users C ON A.userId = C.Id
+        """
+
+        # Execute the SQL query
+        cursor = netsparker_connection.execute(sql_query)
+        results = cursor.fetchall()
+
+        # Print the results
+        for row in results:
+            print(row)
+
+    except Exception as e:
+        print(f"An error occurred: {e}", file=sys.stderr)
+    finally:
+        # Close the connections
+        if 'netsparker_connection' in locals():
+            netsparker_connection.close()
+        if 'cx_connection' in locals():
+            cx_connection.close()
+
+if __name__ == "__main__":
+    main()
