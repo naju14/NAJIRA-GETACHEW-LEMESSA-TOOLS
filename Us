@@ -1,1 +1,58 @@
+# Import necessary modules
+Import-Module ActiveDirectory
+
+# Define variables
+$groups = @("ABC", "DEF")              # AD groups to query
+$logPath = "C:\inetpub\logs\LogFiles"  # Path to IIS log files
+$outputFile = "C:\Logs\IIS_Log_Report.csv"  # Path to output CSV file
+
+# Initialize an array to hold log data
+$logData = @()
+
+# Loop through each group
+foreach ($group in $groups) {
+    try {
+        # Get members of the AD group
+        $members = Get-ADGroupMember -Identity $group -Recursive | Where-Object { $_.objectClass -eq 'user' }
+
+        # Loop through each member
+        foreach ($member in $members) {
+            # Get user's SAMAccountName to match in IIS logs
+            $username = $member.SamAccountName
+
+            # Loop through each IIS log file in the directory
+            Get-ChildItem -Path $logPath -Filter "*.log" | ForEach-Object {
+                $logFile = $_.FullName
+
+                # Read the log file and filter lines that match the username
+                Select-String -Path $logFile -Pattern $username | ForEach-Object {
+                    # Parse log entry
+                    $logEntry = $_.Line -split "\s+"  # Splits by whitespace
+
+                    # Assuming a basic IIS log format, adjust indexes based on log structure
+                    $logRecord = @{
+                        Date        = $logEntry[0]
+                        Time        = $logEntry[1]
+                        UserName    = $username
+                        ClientIP    = $logEntry[2]      # Adjust index as per log structure
+                        HttpMethod  = $logEntry[3]      # Adjust index as per log structure
+                        UriStem     = $logEntry[4]      # Adjust index as per log structure
+                        UriQuery    = $logEntry[5]      # Adjust index as per log structure
+                        StatusCode  = $logEntry[6]      # Adjust index as per log structure
+                        UserAgent   = $logEntry[7]      # Adjust index as per log structure
+                    }
+                    # Add record to log data
+                    $logData += $logRecord
+                }
+            }
+        }
+    } catch {
+        Write-Host "Error retrieving members for group $group: $_"
+    }
+}
+
+# Export data to CSV
+$logData | Export-Csv -Path $outputFile -NoTypeInformation -Encoding UTF8
+
+Write-Host "IIS log report generated at $outputFile"
 
